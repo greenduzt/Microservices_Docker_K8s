@@ -13,7 +13,7 @@ public class PlatformsController : Controller
     private readonly IMapper mapper;
 
     public PlatformsController(ICommandRepo commandRepo, IMapper mapper)
-   {
+    {
         this.commandRepo = commandRepo;
         this.mapper = mapper;
     }
