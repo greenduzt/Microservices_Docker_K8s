@@ -34,6 +34,12 @@ public class CommandRepo : ICommandRepo
         
     }
 
+    public bool ExternalPlatformExists(int externalPlatformId)
+    {
+        return _appDbContext.Platforms.Any(p => p.Id == externalPlatformId);
+
+    }
+
     public IEnumerable<Platform> GetAllPlatforms()
     {
         return _appDbContext.Platforms.ToList();
