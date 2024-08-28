@@ -23,5 +23,8 @@
     <PackageReference Include="RabbitMQ.client" Version="6.8.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
   </ItemGroup>
+  <ItemGroup>
+    <Protobuf Include = "Protos\Platforms.proto" GrpcServices = "Client" />
+  </ItemGroup>
 
 </Project>

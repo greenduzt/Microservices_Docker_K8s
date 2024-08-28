@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using PlatformService.AsyncDataServices;
 using PlatformService.Data;
+using PlatformService.SyncDataServices.Grpc;
 using PlatformService.SyncDataServices.HTTP;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -25,6 +26,7 @@ else
    builder.Services.AddDbContext<ApplicationDBContext>(opt => opt.UseInMemoryDatabase("InMemTemp"));
 }
 
+builder.Services.AddGrpc();
 builder.Services.AddScoped<IPlatformRepo, PlatformRepo>();
 builder.Services.AddHttpClient<ICommandDataClient,HttpCommandDataClient>();
 builder.Services.AddSingleton<IMessageBusClient,MessageBusClient>();
@@ -48,6 +50,11 @@ if (app.Environment.IsDevelopment())
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapGrpcService<GrpcPlatformService>();
+app.MapGet("/protos/Platforms.proto", async context => 
+{
+    await context.Response.WriteAsync(System.IO.File.ReadAllText("Protos/Platforms.proto"));
+});
 
 PrepDb.PrepPopulation(app,builder.Environment.IsProduction());
 
