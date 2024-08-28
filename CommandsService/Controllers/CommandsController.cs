@@ -8,70 +8,72 @@ namespace CommandsService.Controllers;
 
 [Route("api/c/platforms/{platformId}/[controller]")]
 [ApiController]
-public class CommandsController : Controller
-{
-    private readonly ICommandRepo commandRepo;  
-    private readonly IMapper mapper;
-
-    public CommandsController(ICommandRepo commandRepo, IMapper mapper)
+ public class CommandsController : ControllerBase
     {
-        this.commandRepo = commandRepo;
-        this.mapper = mapper;
-    }
+        private readonly ICommandRepo _repository;
+        private readonly IMapper _mapper;
+
+        public CommandsController(ICommandRepo repository, IMapper mapper)
+        {
+            _repository = repository;
+            _mapper = mapper;
+        }
 
     [HttpGet]
-    public ActionResult<IEnumerable<CommandReadDto>> GetCommandsForPlatform(int platformId)
-    {
-        System.Console.WriteLine($"--> Hit GetCommandsForPlatform: {platformId}");  
-
-        if(!commandRepo.PlatFormExists(platformId))
+     public ActionResult<IEnumerable<CommandReadDto>> GetCommandsForPlatform(int platformId)
         {
-            return NotFound(); // Http 404
-        }
-        
-        var commands = commandRepo.GetCommandsForPlatform(platformId);
+            Console.WriteLine($"--> Hit GetCommandsForPlatform: {platformId}");
 
-        return Ok(mapper.Map<IEnumerable<CommandReadDto>>(commands));
-    }
+            if (!_repository.PlatFormExists(platformId))
+            {
+                return NotFound();
+            }
+
+            var commands = _repository.GetCommandsForPlatform(platformId);
+
+            return Ok(_mapper.Map<IEnumerable<CommandReadDto>>(commands));
+        }
 
     [HttpGet("{commandId}", Name = "GetCommandForPlatform")]
 
-    public ActionResult<CommandReadDto> GetCommandForPlatform(int platformId, int commandId)
-    {
-        System.Console.WriteLine($"--> Hit GetCommandForPlatform: {platformId} | {commandId}");
-
-        if(!commandRepo.PlatFormExists(platformId))
+     public ActionResult<CommandReadDto> GetCommandForPlatform(int platformId, int commandId)
         {
-            return NotFound();
-        }
+            Console.WriteLine($"--> Hit GetCommandForPlatform: {platformId} / {commandId}");
 
-        var command = commandRepo.GetCommand(platformId,commandId);
-        
-        if(command == null )
-        {
-            return NotFound();
-        }
+            if (!_repository.PlatFormExists(platformId))
+            {
+                return NotFound();
+            }
 
-        return Ok(mapper.Map<CommandReadDto>(command));
-    }
+            var command = _repository.GetCommand(platformId, commandId);
+
+            if(command == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(_mapper.Map<CommandReadDto>(command));
+        }
 
     [HttpPost] 
     public ActionResult<CommandReadDto> CreateCommandForPlatform(int platformId, CommandCreateDto commandDto)
-    {
-        System.Console.WriteLine($"--> Hit CreateCommandForPlatform: {platformId}");  
-
-        if(!commandRepo.PlatFormExists(platformId))
         {
-            return NotFound(); // Http 404
+             Console.WriteLine($"--> Hit CreateCommandForPlatform: {platformId}");
+
+            if (!_repository.PlatFormExists(platformId))
+            {
+                return NotFound();
+            }
+
+            var command = _mapper.Map<Command>(commandDto);
+
+            _repository.CreateCommand(platformId, command);
+            _repository.SaveChanges();
+
+            var commandReadDto = _mapper.Map<CommandReadDto>(command);
+
+            return CreatedAtRoute(nameof(GetCommandForPlatform),
+                new {platformId = platformId, commandId = commandReadDto.Id}, commandReadDto);
         }
 
-        var command = mapper.Map<Command>(commandDto);
-
-        commandRepo.CreateCommand(platformId, command);
-        commandRepo.SaveChanges();
-
-        var commandReadDto = mapper.Map<CommandReadDto>(command);
-
-        return CreatedAtRoute(nameof(GetCommandForPlatform), new { platformId, commandId  = commandReadDto.Id},commandReadDto);
-    }
 }
